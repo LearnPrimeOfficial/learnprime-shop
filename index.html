@@ -320,6 +320,12 @@
         // --- NEW AUTHENTICATION HANDLERS ---
         
         async function handleLoginSignup() {
+            // FIX: Check if auth object is initialized before proceeding
+            if (!auth) {
+                displayAuthError("Initialization in progress. Please wait a moment and try again.");
+                return;
+            }
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorElement = document.getElementById('auth-error-message');
@@ -357,6 +363,12 @@
         }
         
         async function handleLogout() {
+             // FIX: Check if auth object is initialized before proceeding
+            if (!auth) {
+                showStatus('Firebase is not yet initialized. Please wait a moment.', 'bg-red-100 border-red-400 text-red-700');
+                return;
+            }
+            
             try {
                 await signOut(auth);
                 // The onAuthStateChanged listener will handle UI cleanup
