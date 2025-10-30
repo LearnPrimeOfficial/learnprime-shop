@@ -28,6 +28,10 @@
         html {
             scroll-behavior: smooth;
         }
+        /* Style for the login modal backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body class="font-sans bg-gray-50 text-gray-800">
@@ -53,12 +57,25 @@
                     <a href="#contact" class="text-base font-medium text-gray-500 hover:text-primary transition duration-150">Contact</a>
                 </nav>
 
-                <!-- User ID Display (Crucial for multi-user apps) -->
-                <div class="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
-                    <span id="user-display" class="ml-8 text-sm font-medium text-gray-600 truncate max-w-[200px]">
+                <!-- User ID, Login/Logout Buttons -->
+                <div class="hidden md:flex items-center justify-end md:flex-1 lg:w-0 space-x-4">
+                    <span id="user-display" class="text-sm font-medium text-gray-600 truncate max-w-[150px]">
                         Loading User...
                     </span>
-                    <a href="#purchases" class="ml-4 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-accent hover:bg-primary transition duration-300">
+                    
+                    <!-- Login/Sign Up Button -->
+                    <button id="login-button" onclick="showModal('login-modal')" 
+                            class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-primary hover:bg-indigo-700 transition duration-300">
+                        Login / Sign Up
+                    </button>
+
+                    <!-- Logout Button (Hidden by default) -->
+                    <button id="logout-button" onclick="handleLogout()" 
+                            class="hidden whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-red-500 hover:bg-red-600 transition duration-300">
+                        Logout
+                    </button>
+
+                    <a href="#purchases" class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-accent hover:bg-teal-600 transition duration-300">
                         My Purchases
                     </a>
                 </div>
@@ -140,10 +157,58 @@
         </div>
     </footer>
 
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Modal Background -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="hideModal('login-modal')"></div>
+
+            <!-- Modal Content -->
+            <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                                Login or Create Account
+                            </h3>
+                            <div class="mt-4">
+                                <form id="login-form" onsubmit="event.preventDefault(); handleLoginSignup();">
+                                    <div class="mb-4">
+                                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                                        <input type="email" id="email" name="email" required 
+                                               class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-primary focus:border-primary">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="password" class="block text-sm font-medium text-gray-700">Password (min 6 characters)</label>
+                                        <input type="password" id="password" name="password" required minlength="6"
+                                               class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-primary focus:border-primary">
+                                    </div>
+                                    <p id="auth-error-message" class="text-sm text-red-500 mt-2 hidden">Error message placeholder</p>
+                                    <div class="mt-6 flex justify-end space-x-3">
+                                        <button type="submit" id="login-signup-btn" 
+                                                class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-teal-600 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
+                                            Login / Sign Up
+                                        </button>
+                                        <button type="button" onclick="hideModal('login-modal')"
+                                                class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Firebase Imports for E-commerce Architecture -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ADDED: signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -154,6 +219,28 @@
 
         let db, auth, userId;
         setLogLevel('debug'); // Enable Firestore logs
+
+        // --- UI UTILITY FUNCTIONS ---
+        function showModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+            document.getElementById('auth-error-message').classList.add('hidden'); // Clear error
+        }
+
+        function hideModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        // Expose to global window so HTML can call it
+        window.showModal = showModal;
+        window.hideModal = hideModal;
+
+        function displayAuthError(message) {
+            const errorElement = document.getElementById('auth-error-message');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
 
         // Helper function to truncate text with ellipsis
         function truncateText(text, maxLength) {
@@ -168,38 +255,120 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // --- MODIFIED AUTH FLOW START ---
-                // 1. Set up the state change listener first to catch the sign-in result
-                onAuthStateChanged(auth, async (user) => {
+                // 1. Set up the state change listener (Primary mechanism)
+                onAuthStateChanged(auth, (user) => {
+                    const loginButton = document.getElementById('login-button');
+                    const logoutButton = document.getElementById('logout-button');
+
                     if (user) {
                         userId = user.uid;
-                        document.getElementById('user-display').textContent = `User ID: ${userId}`;
+                        document.getElementById('user-display').textContent = `User ID: ${truncateText(userId, 15)}`;
                         document.getElementById('loading-message').textContent = 'Products loaded.';
-                        
+
+                        // Show Logout, Hide Login if authenticated
+                        if (!user.isAnonymous) {
+                            loginButton.classList.add('hidden');
+                            logoutButton.classList.remove('hidden');
+                            document.getElementById('user-display').textContent = `User ID: ${truncateText(userId, 15)} (Email)`;
+                        } else {
+                            // Anonymous user: keep login button visible
+                            loginButton.classList.remove('hidden');
+                            logoutButton.classList.add('hidden');
+                            document.getElementById('user-display').textContent = `User ID: ${truncateText(userId, 15)} (Anon)`;
+                        }
+
                         // Proceed to load data after successful authentication
                         loadProducts();
                         checkUserPurchases();
                     } else {
-                        document.getElementById('user-display').textContent = 'User ID: Anonymous';
-                        document.getElementById('loading-message').textContent = 'Authentication failed. Cannot load products.';
-                        document.getElementById('purchase-loading').textContent = 'Please refresh to authenticate and view purchases.';
-                        console.error("Authentication failed. User is null.");
+                        // This handles initial unauthenticated state or sign-out
+                        userId = null;
+                        document.getElementById('user-display').textContent = 'User ID: Signed Out';
+                        document.getElementById('loading-message').textContent = 'Please log in to see products.';
+                        document.getElementById('purchase-loading').textContent = 'Please log in to view purchases.';
+                        
+                        // Ensure login button is visible
+                        loginButton.classList.remove('hidden');
+                        logoutButton.classList.add('hidden');
                     }
                 });
 
-                // 2. Execute the sign-in attempt (the listener above will catch the resulting state change)
-                if (initialAuthToken) {
-                    signInWithCustomToken(auth, initialAuthToken); 
-                } else {
-                    signInAnonymously(auth); 
+                // 2. Execute initial sign-in attempt (If no user is logged in, use the token or sign in anonymously)
+                if (auth.currentUser === null) {
+                    let signinPromise;
+                    if (initialAuthToken) {
+                        // Attempt custom token sign-in
+                        signinPromise = signInWithCustomToken(auth, initialAuthToken)
+                            .catch(e => {
+                                console.warn("Custom token failed, attempting anonymous sign-in.", e);
+                                return signInAnonymously(auth);
+                            });
+                    } else {
+                        // Attempt anonymous sign-in
+                        signinPromise = signInAnonymously(auth); 
+                    }
+                    await signinPromise; // Wait for the sign-in to complete
                 }
-                // --- MODIFIED AUTH FLOW END ---
 
             } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                document.getElementById('loading-message').textContent = `Initialization Error: ${error.message}`;
+                console.error("Error initializing or signing in to Firebase:", error);
+                document.getElementById('loading-message').textContent = `Initialization/Sign-in Error: ${error.message}`;
+                document.getElementById('user-display').textContent = 'Auth Error';
             }
         }
+        
+        // --- NEW AUTHENTICATION HANDLERS ---
+        
+        async function handleLoginSignup() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('auth-error-message');
+            errorElement.classList.add('hidden');
+            
+            if (!email || password.length < 6) {
+                displayAuthError("Please enter a valid email and a password of at least 6 characters.");
+                return;
+            }
+
+            // Attempt Login first
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // If successful, onAuthStateChanged handles UI update
+                hideModal('login-modal');
+            } catch (loginError) {
+                // If login fails, check if it's a "user not found" error to try sign-up
+                if (loginError.code === 'auth/user-not-found') {
+                    // Attempt Sign Up
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                        // If successful, onAuthStateChanged handles UI update
+                        hideModal('login-modal');
+                    } catch (signupError) {
+                        // Handle generic sign-up errors (e.g., email already in use, weak password)
+                        displayAuthError(`Sign Up Failed: ${signupError.message.replace('Firebase: ', '')}`);
+                        console.error("Sign Up Error:", signupError);
+                    }
+                } else {
+                    // Handle generic login errors (e.g., wrong password, invalid email format)
+                    displayAuthError(`Login Failed: ${loginError.message.replace('Firebase: ', '')}`);
+                    console.error("Login Error:", loginError);
+                }
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                // The onAuthStateChanged listener will handle UI cleanup
+            } catch (error) {
+                console.error("Error signing out:", error);
+                // Since we can't use alert(), we'll log and display a temporary status
+                showStatus('Error signing out. Check console for details.', 'bg-red-100 border-red-400 text-red-700');
+            }
+        }
+
+        window.handleLoginSignup = handleLoginSignup;
+        window.handleLogout = handleLogout;
 
 
         // Mock Product Data (Max 300 characters for description)
@@ -254,7 +423,10 @@
         async function checkUserPurchases() {
             const purchaseListElement = document.getElementById('purchase-list');
             
-            if (!userId) {
+            // Check if userId is available before attempting Firestore access
+            const currentId = userId || auth.currentUser?.uid;
+
+            if (!currentId) {
                 purchaseListElement.innerHTML = `<p class="text-center text-red-500 p-8 bg-white rounded-xl shadow-md">Cannot check purchases: User not authenticated.</p>`;
                 return;
             }
@@ -266,7 +438,7 @@
             try {
                 // Query the user's private purchases collection
                 const purchasesRef = collection(db, 
-                    'artifacts', appId, 'users', userId, 'purchases'
+                    'artifacts', appId, 'users', currentId, 'purchases'
                 );
                 // Note: No orderBy() used to comply with Firestore best practices
                 const purchaseSnap = await getDocs(purchasesRef);
@@ -320,9 +492,12 @@
 
         // 4. Handle Purchase (Mocks Payment Gateway Integration)
         async function handlePurchase(product) {
-            if (!userId) {
+            // Use current user ID for purchase recording
+            const currentId = userId || auth.currentUser?.uid;
+
+            if (!currentId) {
                 console.error("User not authenticated.");
-                showStatus('Authentication Error. Please refresh the page.', 'bg-red-100 border-red-400 text-red-700');
+                showStatus('Authentication Error. Please log in to make a purchase.', 'bg-red-100 border-red-400 text-red-700');
                 return;
             }
             
@@ -344,7 +519,7 @@
             // Record Purchase in User's Private Collection (Granting Access)
             try {
                 const purchaseDocRef = doc(db, 
-                    'artifacts', appId, 'users', userId, 'purchases', transactionId
+                    'artifacts', appId, 'users', currentId, 'purchases', transactionId
                 );
                 
                 await setDoc(purchaseDocRef, purchaseRecord);
