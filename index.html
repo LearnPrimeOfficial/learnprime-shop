@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnPrime | Your Exam Success Partner</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuration for Tailwind colors and font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4f46e5', // Indigo-600
+                        'secondary': '#8b5cf6', // Violet-500
+                        'accent': '#10b981', // Emerald-500
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ensuring smooth scrolling for navigation */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50 text-gray-800">
+
+    <!-- Header & Navigation -->
+    <header class="sticky top-0 z-50 bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4 md:justify-start md:space-x-10">
+                <!-- Logo/Title -->
+                <div class="flex justify-start lg:w-0 lg:flex-1">
+                    <a href="#" class="flex items-center space-x-2">
+                        <!-- Simple SVG Icon -->
+                        <svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"></path></svg>
+                        <span class="text-xl font-extrabold text-gray-900">LearnPrime</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex space-x-10">
+                    <a href="#hero" class="text-base font-medium text-gray-500 hover:text-primary transition duration-150">Home</a>
+                    <a href="#products" class="text-base font-medium text-gray-500 hover:text-primary transition duration-150">Papers (Shop)</a>
+                    <a href="#purchases" class="text-base font-medium text-gray-500 hover:text-primary transition duration-150">My Downloads</a>
+                    <a href="#contact" class="text-base font-medium text-gray-500 hover:text-primary transition duration-150">Contact</a>
+                </nav>
+
+                <!-- User ID Display (Crucial for multi-user apps) -->
+                <div class="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
+                    <span id="user-display" class="ml-8 text-sm font-medium text-gray-600 truncate max-w-[150px]">
+                        Loading User...
+                    </span>
+                    <a href="#purchases" class="ml-4 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-accent hover:bg-primary transition duration-300">
+                        My Purchases
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) - Content omitted for brevity, but script remains functional -->
+        <div id="mobile-menu" class="hidden absolute top-16 inset-x-0 p-2 transition transform origin-top-right md:hidden bg-white shadow-xl rounded-b-lg">
+            <!-- Mobile Links go here -->
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="pt-16 pb-20 sm:pt-24 sm:pb-32 lg:pt-32 lg:pb-40 bg-gradient-to-r from-primary to-secondary">
+             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white">
+                    Master Your Exams. Achieve <span class="block text-accent">Your Full Potential.</span>
+                </h1>
+                <p class="mt-4 max-w-2xl mx-auto text-xl text-indigo-100 sm:mt-5">
+                    Structured tutorials, expert guidance, and proven study techniques for competitive and academic tests.
+                </p>
+            </div>
+        </section>
+
+        <!-- Product Listing / E-commerce Section (SHOP) -->
+        <section id="products" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-lg text-primary font-semibold tracking-wide uppercase">Solved Question Papers</h2>
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        Instantly Downloadable Exam Guides (₹50 Each)
+                    </p>
+                </div>
+                <!-- Products will be dynamically inserted here by JavaScript -->
+                <div id="product-list" class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Loading message -->
+                    <div class="lg:col-span-3 text-center text-gray-500" id="loading-message">
+                        Loading products and checking user authentication...
+                    </div>
+                </div>
+
+                 <!-- Purchase Status Message Box -->
+                <div id="status-box" class="mt-12 hidden max-w-xl mx-auto p-4 rounded-lg bg-green-100 border border-green-400 text-green-700 text-center" role="alert">
+                    <p class="font-bold">Purchase Status</p>
+                    <p id="status-message">Transaction details will appear here.</p>
+                </div>
+
+            </div>
+        </section>
+        
+        <!-- My Purchases / Downloads Section -->
+        <section id="purchases" class="py-16 sm:py-24 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-lg text-primary font-semibold tracking-wide uppercase">Your Library</h2>
+                    <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        Your Downloadable Purchases
+                    </p>
+                </div>
+                
+                <div id="purchase-list" class="mt-12 space-y-4">
+                    <!-- Purchases will be dynamically inserted here -->
+                    <p id="purchase-loading" class="text-center text-gray-600 p-8 bg-white rounded-xl shadow-md">Checking your purchase history...</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Other sections (Features, Contact) omitted for brevity and focus on E-commerce -->
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-gray-800">
+        <div class="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
+            <p class="mt-8 text-center text-base text-gray-400">
+                &copy; 2025 LearnPrime, Inc. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Firebase Imports for E-commerce Architecture -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase and App Configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId;
+        setLogLevel('debug'); // Enable Firestore logs
+
+        // Helper function to truncate text with ellipsis
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength - 3) + '...';
+        }
+
+        // 1. Initialize Firebase and Authenticate User
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in with custom token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Wait for auth state change to determine userId
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-display').textContent = `User ID: ${userId}`;
+                        document.getElementById('loading-message').textContent = 'Products loaded.';
+                        
+                        // Proceed to load data after successful authentication
+                        loadProducts();
+                        checkUserPurchases();
+                    } else {
+                        document.getElementById('user-display').textContent = 'User ID: Anonymous';
+                        document.getElementById('loading-message').textContent = 'Authentication failed. Cannot load products.';
+                        document.getElementById('purchase-loading').textContent = 'Please refresh to authenticate and view purchases.';
+                        console.error("Authentication failed. User is null.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                document.getElementById('loading-message').textContent = `Initialization Error: ${error.message}`;
+            }
+        }
+
+
+        // Mock Product Data (Max 300 characters for description)
+        const mockProducts = [
+            { id: 'sat2024', name: 'SAT Math Solved Paper 2024', price: 50, currency: 'INR', exam: 'SAT', downloadLink: 'mock_sat_paper.pdf', description: 'A comprehensive, fully solved mathematics paper mirroring the latest SAT exam pattern. Includes detailed step-by-step explanations for every question, covering Algebra, Data Analysis, and Advanced Math concepts. Perfect for final-stage revision and scoring practice.' },
+            { id: 'aws-c03', name: 'AWS Cloud Practitioner Mock Test 3', price: 50, currency: 'INR', exam: 'AWS', downloadLink: 'mock_aws_test.pdf', description: 'Simulate the official AWS Certified Cloud Practitioner (CLF-C02) exam experience with this full-length mock test. Features 65 carefully curated questions across all domains: Cloud Concepts, Security, Technology, and Billing/Pricing. Check your readiness instantly!' },
+            { id: 'toefl-set5', name: 'TOEFL Speaking Practice Set 5', price: 50, currency: 'INR', exam: 'TOEFL', downloadLink: 'mock_toefl_set.pdf', description: 'Targeted practice set for the TOEFL Speaking section (Independent and Integrated tasks). Includes high-quality audio transcripts, suggested expert responses, and evaluation criteria used by TOEFL examiners. Boost your score by mastering pronunciation and fluency.' }
+        ];
+
+        // 2. Load and Render Products (Shop View)
+        async function loadProducts() {
+            const productListElement = document.getElementById('product-list');
+            productListElement.innerHTML = ''; // Clear loading message
+
+            // In a real application, you would fetch products from a public Firestore collection:
+            // const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'solved_papers');
+            // const productSnap = await getDocs(productsRef);
+            // const products = productSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            mockProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 p-6 rounded-xl shadow-lg border-t-4 border-accent hover:shadow-2xl transition duration-300 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">${product.name}</h3>
+                        <p class="mt-1 text-sm text-primary font-medium">Exam: ${product.exam}</p>
+                        <p class="mt-4 text-sm text-gray-700 h-20 overflow-hidden">${truncateText(product.description, 150)}</p>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-extrabold text-primary">${product.currency} ${product.price}</p>
+                        <button data-product-id="${product.id}" class="buy-button mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-accent hover:bg-primary transition duration-300 transform hover:scale-[1.01]">
+                            Buy Now (₹50)
+                        </button>
+                    </div>
+                `;
+                productListElement.appendChild(card);
+            });
+
+            // Add event listeners to the new buttons
+            productListElement.querySelectorAll('.buy-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const productId = e.target.dataset.productId;
+                    const product = mockProducts.find(p => p.id === productId);
+                    if (product) {
+                        handlePurchase(product);
+                    }
+                });
+            });
+        }
+        
+        // 3. Check and Render User Purchases (Downloads View)
+        async function checkUserPurchases() {
+            const purchaseListElement = document.getElementById('purchase-list');
+            
+            if (!userId) {
+                purchaseListElement.innerHTML = `<p class="text-center text-red-500 p-8 bg-white rounded-xl shadow-md">Cannot check purchases: User not authenticated.</p>`;
+                return;
+            }
+            
+            // Show loading state while fetching data
+            purchaseListElement.innerHTML = `<p id="purchase-loading" class="text-center text-gray-600 p-8 bg-white rounded-xl shadow-md">Checking your purchase history...</p>`;
+
+
+            try {
+                // Query the user's private purchases collection
+                const purchasesRef = collection(db, 
+                    'artifacts', appId, 'users', userId, 'purchases'
+                );
+                // Note: No orderBy() used to comply with Firestore best practices
+                const purchaseSnap = await getDocs(purchasesRef);
+                
+                // Clear the loading message
+                purchaseListElement.innerHTML = ''; 
+
+
+                if (purchaseSnap.empty) {
+                    purchaseListElement.innerHTML = `<p class="text-center text-gray-600 p-8 bg-white rounded-xl shadow-md">You haven't purchased any papers yet. Visit the Shop above!</p>`;
+                    return;
+                }
+                
+                // Array to store purchases, sorted by timestamp locally
+                let purchases = [];
+                purchaseSnap.forEach(doc => {
+                    purchases.push(doc.data());
+                });
+
+                // Sort purchases by timestamp (most recent first)
+                purchases.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+
+                purchases.forEach(record => {
+                    const productInfo = mockProducts.find(p => p.id === record.productId);
+                    const productName = productInfo ? productInfo.name : record.productName || 'Unknown Product';
+                    const downloadLink = productInfo ? productInfo.downloadLink : '#';
+                    
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-white p-4 rounded-xl shadow-md border-l-4 border-primary transition duration-300 hover:shadow-lg';
+                    item.innerHTML = `
+                        <div>
+                            <p class="text-lg font-semibold text-gray-900">${productName}</p>
+                            <p class="text-sm text-gray-500">Purchased: ${new Date(record.timestamp).toLocaleDateString()}</p>
+                        </div>
+                        <a href="${downloadLink}" download="${productName.replace(/ /g, '_')}.pdf" 
+                            class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-accent hover:bg-secondary transition duration-300 shadow-md transform hover:scale-[1.02]">
+                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download
+                        </a>
+                    `;
+                    purchaseListElement.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error("Error reading user purchases:", error);
+                purchaseListElement.innerHTML = `<p class="text-center text-red-500 p-8 bg-white rounded-xl shadow-md">Error loading purchases: ${error.message}</p>`;
+            }
+        }
+
+
+        // 4. Handle Purchase (Mocks Payment Gateway Integration)
+        async function handlePurchase(product) {
+            if (!userId) {
+                console.error("User not authenticated.");
+                showStatus('Authentication Error. Please refresh the page.', 'bg-red-100 border-red-400 text-red-700');
+                return;
+            }
+            
+            showStatus(`Initiating payment for ${product.name}... (Payment Mocked)`, 'bg-yellow-100 border-yellow-400 text-yellow-700');
+            
+            // SIMULATION for demonstration purposes:
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+            const transactionId = `txn_${Date.now()}`;
+            const purchaseRecord = {
+                productId: product.id,
+                productName: product.name,
+                price: product.price,
+                currency: product.currency,
+                timestamp: new Date().toISOString(),
+                status: 'COMPLETED',
+                transactionId: transactionId
+            };
+
+            // Record Purchase in User's Private Collection (Granting Access)
+            try {
+                const purchaseDocRef = doc(db, 
+                    'artifacts', appId, 'users', userId, 'purchases', transactionId
+                );
+                
+                await setDoc(purchaseDocRef, purchaseRecord);
+
+                showStatus(`Success! Purchase of ${product.name} recorded. Check "My Downloads" now!`, 'bg-green-100 border-green-400 text-green-700');
+                
+                // Immediately update the purchase list after a successful mock transaction
+                checkUserPurchases(); 
+
+            } catch (e) {
+                console.error("Error recording purchase to Firestore:", e);
+                showStatus('Error recording purchase. Please check the console.', 'bg-red-100 border-red-400 text-red-700');
+            }
+        }
+        
+        // Utility function to display purchase status
+        function showStatus(message, classes) {
+            const statusBox = document.getElementById('status-box');
+            const statusMessage = document.getElementById('status-message');
+            
+            statusBox.className = `mt-12 max-w-xl mx-auto p-4 rounded-lg border text-center ${classes}`;
+            statusMessage.textContent = message;
+            statusBox.classList.remove('hidden');
+        }
+
+        // Start the application
+        initializeFirebase();
+    </script>
+</body>
+</html>
