@@ -63,10 +63,10 @@
                         Loading User...
                     </span>
                     
-                    <!-- Login/Sign Up Button - Now disabled until Firebase initializes -->
-                    <button id="login-button" onclick="showModal('login-modal')" disabled 
-                            class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-gray-400 cursor-not-allowed">
-                        Loading Auth...
+                    <!-- Login/Sign Up Button -->
+                    <button id="login-button" onclick="showModal('login-modal')" 
+                            class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-primary hover:bg-indigo-700 transition duration-300">
+                        Login / Sign Up
                     </button>
 
                     <!-- Logout Button (Hidden by default) -->
@@ -120,7 +120,7 @@
 
                  <!-- Purchase Status Message Box -->
                 <div id="status-box" class="mt-12 hidden max-w-xl mx-auto p-4 rounded-lg bg-green-100 border border-green-400 text-green-700 text-center" role="alert">
-                    <p class="font-bold">Purchase Status</p>
+                    <p class="font-bold">Status Update</p>
                     <p id="status-message">Transaction details will appear here.</p>
                 </div>
 
@@ -157,7 +157,7 @@
         </div>
     </footer>
 
-    <!-- Login Modal -->
+    <!-- Login Modal (Phone Number + OTP) -->
     <div id="login-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Modal Background -->
@@ -169,23 +169,51 @@
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                                Enter Your Email to Get a Login Link
+                                Log in with Phone Number (OTP)
                             </h3>
                             <div class="mt-4">
-                                <!-- Updated form for magic link login -->
-                                <form id="login-form" onsubmit="event.preventDefault(); handleLoginSignup();">
-                                    <div class="mb-4">
-                                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                                        <input type="email" id="email" name="email" required 
-                                               class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-primary focus:border-primary">
+                                <!-- OTP STEP 1: Phone Number Input -->
+                                <form id="phone-input-form" onsubmit="event.preventDefault(); sendVerificationCode();">
+                                    <div id="phone-step" class="mb-4">
+                                        <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number (e.g., +919876543210)</label>
+                                        <input type="tel" id="phoneNumber" name="phoneNumber" required 
+                                               class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 focus:ring-primary focus:border-primary"
+                                               placeholder="+[CountryCode][Number]">
                                     </div>
+                                    <!-- reCAPTCHA Container (invisible by default) -->
+                                    <div id="recaptcha-container" class="mt-4"></div>
+                                    
                                     <p id="auth-error-message" class="text-sm text-red-500 mt-2 hidden">Error message placeholder</p>
+
                                     <div class="mt-6 flex justify-end space-x-3">
-                                        <button type="submit" id="login-signup-btn" 
+                                        <button type="submit" id="send-code-btn" 
                                                 class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-teal-600 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
-                                            Send Magic Link
+                                            Send Code
                                         </button>
                                         <button type="button" onclick="hideModal('login-modal')"
+                                                class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- OTP STEP 2: Code Input (Hidden by default) -->
+                                <form id="otp-verify-form" onsubmit="event.preventDefault(); verifyCode();" class="hidden">
+                                    <p class="text-sm text-gray-600 mb-4">A 6-digit verification code has been sent. Enter it below.</p>
+                                    <div class="mb-4">
+                                        <label for="otpCode" class="block text-sm font-medium text-gray-700">Verification Code</label>
+                                        <input type="number" id="otpCode" name="otpCode" required 
+                                               class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 text-center text-xl tracking-wider focus:ring-primary focus:border-primary"
+                                               minlength="6" maxlength="6">
+                                    </div>
+                                    <p id="auth-verify-error" class="text-sm text-red-500 mt-2 hidden">Verification error placeholder</p>
+
+                                    <div class="mt-6 flex justify-end space-x-3">
+                                        <button type="submit" id="verify-otp-btn" 
+                                                class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-indigo-700 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
+                                            Verify & Log In
+                                        </button>
+                                        <button type="button" onclick="hideModal('login-modal'); resetAuthUI();"
                                                 class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition duration-150 sm:w-auto sm:text-sm">
                                             Cancel
                                         </button>
@@ -203,8 +231,8 @@
     <!-- Firebase Imports for E-commerce Architecture -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // UPDATED IMPORTS for Email Link Authentication
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // UPDATED IMPORTS for Phone Auth and reCAPTCHA
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -216,11 +244,17 @@
         let db, auth, userId;
         setLogLevel('debug'); // Enable Firestore logs
 
+        // Global Phone Auth variables
+        window.recaptchaVerifier = null;
+        window.confirmationResult = null;
+
+
         // --- UI UTILITY FUNCTIONS ---
         function showModal(id) {
             document.getElementById(id).classList.remove('hidden');
             document.getElementById(id).classList.add('flex');
-            document.getElementById('auth-error-message').classList.add('hidden'); // Clear error
+            resetAuthUI(); // Reset the UI state every time the modal opens
+            document.getElementById('auth-error-message').classList.add('hidden'); 
         }
 
         function hideModal(id) {
@@ -234,6 +268,12 @@
 
         function displayAuthError(message) {
             const errorElement = document.getElementById('auth-error-message');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        function displayVerifyError(message) {
+            const errorElement = document.getElementById('auth-verify-error');
             errorElement.textContent = message;
             errorElement.classList.remove('hidden');
         }
@@ -253,6 +293,19 @@
             statusMessage.textContent = message;
             statusBox.classList.remove('hidden');
         }
+        
+        // Function to reset the Phone Auth UI to step 1
+        function resetAuthUI() {
+            document.getElementById('phone-input-form').classList.remove('hidden');
+            document.getElementById('otp-verify-form').classList.add('hidden');
+            document.getElementById('auth-error-message').classList.add('hidden');
+            document.getElementById('auth-verify-error').classList.add('hidden');
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('otpCode').value = '';
+            window.confirmationResult = null; // Clear confirmation result
+        }
+        window.resetAuthUI = resetAuthUI;
+
 
         // 1. Initialize Firebase and Authenticate User
         async function initializeFirebase() {
@@ -260,19 +313,25 @@
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                
+                // Initialize ReCAPTCHA Verifier
+                // Setting size to 'invisible' means it only appears when needed by Firebase.
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible', 
+                    'callback': (response) => {
+                        // reCAPTCHA solved, but we handle the code sending directly in sendVerificationCode
+                    },
+                    'expired-callback': () => {
+                        console.log("reCAPTCHA expired, please try again.");
+                    }
+                });
+                // Render the widget immediately
+                window.recaptchaVerifier.render();
 
                 // 1. Set up the state change listener (Primary mechanism)
                 onAuthStateChanged(auth, (user) => {
                     const loginButton = document.getElementById('login-button');
                     const logoutButton = document.getElementById('logout-button');
-                    
-                    // --- Auth Initialization Complete: Enable Button ---
-                    loginButton.disabled = false;
-                    loginButton.textContent = 'Login / Sign Up';
-                    // Restore original primary styling
-                    loginButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                    loginButton.classList.add('bg-primary', 'hover:bg-indigo-700');
-                    // ---------------------------------------------------
 
                     if (user) {
                         userId = user.uid;
@@ -283,7 +342,7 @@
                         if (!user.isAnonymous) {
                             loginButton.classList.add('hidden');
                             logoutButton.classList.remove('hidden');
-                            document.getElementById('user-display').textContent = `User ID: ${truncateText(userId, 15)} (Email)`;
+                            document.getElementById('user-display').textContent = `User ID: ${truncateText(userId, 15)} (Phone)`;
                         } else {
                             // Anonymous user: keep login button visible
                             loginButton.classList.remove('hidden');
@@ -294,6 +353,7 @@
                         // Proceed to load data after successful authentication
                         loadProducts();
                         checkUserPurchases();
+                        hideModal('login-modal'); // Close modal on successful sign-in
                     } else {
                         // This handles initial unauthenticated state or sign-out
                         userId = null;
@@ -307,36 +367,8 @@
                     }
                 });
 
-                // 2. Execute initial sign-in attempt and check for email link
+                // 2. Execute initial sign-in attempt (If no user is logged in, use the token or sign in anonymously)
                 if (auth.currentUser === null) {
-                    
-                    // --- Handle Email Link Sign-in ---
-                    if (isSignInWithEmailLink(auth, window.location.href)) {
-                        const savedEmail = localStorage.getItem('emailForSignIn');
-
-                        if (savedEmail) {
-                             showStatus(`Completing sign-in for ${savedEmail}...`, 'bg-indigo-100 border-indigo-400 text-indigo-700');
-                            try {
-                                await signInWithEmailLink(auth, savedEmail, window.location.href);
-                                localStorage.removeItem('emailForSignIn'); // Clean up local storage
-                                showStatus('Login successful! Welcome back.', 'bg-green-100 border-green-400 text-green-700');
-                            } catch (error) {
-                                console.error("Error signing in with email link:", error);
-                                showStatus(`Sign-in failed: ${error.message}`, 'bg-red-100 border-red-400 text-red-700');
-                            }
-                            // Clear the sign-in link from the URL (to prevent re-use/errors)
-                            if (window.history && window.history.replaceState) {
-                                window.history.replaceState({}, document.title, window.location.pathname);
-                            }
-                        } else {
-                            // This happens if the user clicks the link on a different browser/device
-                            // In a full app, we would prompt them for their email again here.
-                            showStatus('Please enter your email in the modal and try again on this device to complete the sign-in.', 'bg-red-100 border-red-400 text-red-700');
-                        }
-                        return; // Stop other sign-in methods if we are processing a link
-                    }
-                    // --- End Email Link Handling ---
-
                     let signinPromise;
                     if (initialAuthToken) {
                         // Attempt custom token sign-in
@@ -359,51 +391,97 @@
             }
         }
         
-        // --- NEW AUTHENTICATION HANDLERS ---
+        // --- PHONE AUTHENTICATION HANDLERS ---
         
-        async function handleLoginSignup() {
-            // Check is still here as a fallback, but the button should be enabled now
+        async function sendVerificationCode() {
+            // Check if auth object is initialized before proceeding
             if (!auth) {
                 displayAuthError("Initialization in progress. Please wait a moment and try again.");
                 return;
             }
             
-            const email = document.getElementById('email').value;
-            const errorElement = document.getElementById('auth-error-message');
-            errorElement.classList.add('hidden');
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const sendButton = document.getElementById('send-code-btn');
             
-            if (!email || !email.includes('@')) {
-                displayAuthError("Please enter a valid email address.");
+            displayAuthError(''); // Clear previous error
+            
+            if (!phoneNumber) {
+                displayAuthError("Please enter a valid phone number, including country code (e.g., +91).");
                 return;
             }
 
-            // Configuration for the email link
-            const actionCodeSettings = {
-                // The URL to redirect back to, stripping any hash fragments
-                url: window.location.href.split('#')[0], 
-                handleCodeInApp: true,
-            };
-
             try {
-                // Step 1: Send the sign-in link
-                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                // Disable button and show loading state
+                sendButton.disabled = true;
+                sendButton.textContent = 'Sending...';
+
+                // Firebase sends the code and runs reCAPTCHA
+                window.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+
+                // On success, switch UI to OTP input
+                document.getElementById('phone-input-form').classList.add('hidden');
+                document.getElementById('otp-verify-form').classList.remove('hidden');
+                document.getElementById('auth-error-message').classList.add('hidden'); // Clear status on successful send
                 
-                // Step 2: Save the email locally for step 3 (completing the login)
-                localStorage.setItem('emailForSignIn', email);
-                
-                hideModal('login-modal');
-                showStatus(
-                    `Success! A magic login link has been sent to ${email}. Please check your inbox and click the link to sign in!`, 
-                    'bg-blue-100 border-blue-400 text-blue-700'
-                );
+                showStatus('Success! A verification code has been sent to your phone. Enter it in the modal to log in.', 'bg-blue-100 border-blue-400 text-blue-700');
+
             } catch (error) {
-                displayAuthError(`Error sending link: ${error.message.replace('Firebase: ', '')}`);
-                console.error("Error sending magic link:", error);
+                // Handle errors like invalid phone number, rate limits, or reCAPTCHA failure
+                console.error("Error sending verification code:", error);
+                displayAuthError(`Error sending code: ${error.message.replace('Firebase: ', '')}`);
+                // Reset reCAPTCHA (if it was invisible) and enable button
+                if (window.recaptchaVerifier && window.recaptchaVerifier.reset) {
+                    window.recaptchaVerifier.reset();
+                }
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send Code';
             }
         }
-        
+        window.sendVerificationCode = sendVerificationCode;
+
+
+        async function verifyCode() {
+            const otpCode = document.getElementById('otpCode').value.trim();
+            const verifyButton = document.getElementById('verify-otp-btn');
+            
+            displayVerifyError(''); // Clear previous error
+
+            if (!otpCode || otpCode.length !== 6) {
+                displayVerifyError("Please enter the 6-digit verification code.");
+                return;
+            }
+            
+            if (!window.confirmationResult) {
+                displayVerifyError("Verification result missing. Please re-send the code.");
+                return;
+            }
+            
+            try {
+                // Disable button and show loading state
+                verifyButton.disabled = true;
+                verifyButton.textContent = 'Verifying...';
+                
+                // Confirm the code
+                await window.confirmationResult.confirm(otpCode);
+
+                // On success, onAuthStateChanged listener handles UI update and closes modal
+                showStatus('Login Successful!', 'bg-green-100 border-green-400 text-green-700');
+                
+            } catch (error) {
+                // Handle incorrect code or network errors
+                console.error("Error verifying code:", error);
+                displayVerifyError(`Verification Failed: Invalid code or network error. Please try again.`);
+            } finally {
+                verifyButton.disabled = false;
+                verifyButton.textContent = 'Verify & Log In';
+            }
+        }
+        window.verifyCode = verifyCode;
+
+
         async function handleLogout() {
-             // Check is still here as a fallback, but the button should be enabled now
+             // Check if auth object is initialized before proceeding
             if (!auth) {
                 showStatus('Firebase is not yet initialized. Please wait a moment.', 'bg-red-100 border-red-400 text-red-700');
                 return;
@@ -412,13 +490,14 @@
             try {
                 await signOut(auth);
                 // The onAuthStateChanged listener will handle UI cleanup
+                showStatus('Successfully logged out.', 'bg-gray-100 border-gray-400 text-gray-700');
+                resetAuthUI(); // Reset the UI state after logout
             } catch (error) {
                 console.error("Error signing out:", error);
                 showStatus('Error signing out. Check console for details.', 'bg-red-100 border-red-400 text-red-700');
             }
         }
 
-        window.handleLoginSignup = handleLoginSignup;
         window.handleLogout = handleLogout;
 
 
@@ -542,4 +621,52 @@
 
 
         // 4. Handle Purchase (Mocks Payment Gateway Integration)
-        async function handlePurchase(product
+        async function handlePurchase(product) {
+            // Use current user ID for purchase recording
+            const currentId = userId || auth.currentUser?.uid;
+
+            if (!currentId) {
+                console.error("User not authenticated.");
+                showStatus('Authentication Error. Please log in to make a purchase.', 'bg-red-100 border-red-400 text-red-700');
+                return;
+            }
+            
+            showStatus(`Initiating payment for ${product.name}... (Payment Mocked)`, 'bg-yellow-100 border-yellow-400 text-yellow-700');
+            
+            // SIMULATION for demonstration purposes:
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+            const transactionId = `txn_${Date.now()}`;
+            const purchaseRecord = {
+                productId: product.id,
+                productName: product.name,
+                price: product.price,
+                currency: product.currency,
+                timestamp: new Date().toISOString(),
+                status: 'COMPLETED',
+                transactionId: transactionId
+            };
+
+            // Record Purchase in User's Private Collection (Granting Access)
+            try {
+                const purchaseDocRef = doc(db, 
+                    'artifacts', appId, 'users', currentId, 'purchases', transactionId
+                );
+                
+                await setDoc(purchaseDocRef, purchaseRecord);
+
+                showStatus(`Success! Purchase of ${product.name} recorded. Check "My Downloads" now!`, 'bg-green-100 border-green-400 text-green-700');
+                
+                // Immediately update the purchase list after a successful mock transaction
+                checkUserPurchases(); 
+
+            } catch (e) {
+                console.error("Error recording purchase to Firestore:", e);
+                showStatus('Error recording purchase. Please check the console.', 'bg-red-100 border-red-400 text-red-700');
+            }
+        }
+        
+        // Start the application
+        initializeFirebase();
+    </script>
+</body>
+</html>
