@@ -55,7 +55,7 @@
 
                 <!-- User ID Display (Crucial for multi-user apps) -->
                 <div class="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
-                    <span id="user-display" class="ml-8 text-sm font-medium text-gray-600 truncate max-w-[150px]">
+                    <span id="user-display" class="ml-8 text-sm font-medium text-gray-600 truncate max-w-[200px]">
                         Loading User...
                     </span>
                     <a href="#purchases" class="ml-4 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-accent hover:bg-primary transition duration-300">
@@ -168,14 +168,8 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Sign in with custom token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // Wait for auth state change to determine userId
+                // --- MODIFIED AUTH FLOW START ---
+                // 1. Set up the state change listener first to catch the sign-in result
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
@@ -192,6 +186,14 @@
                         console.error("Authentication failed. User is null.");
                     }
                 });
+
+                // 2. Execute the sign-in attempt (the listener above will catch the resulting state change)
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken); 
+                } else {
+                    signInAnonymously(auth); 
+                }
+                // --- MODIFIED AUTH FLOW END ---
 
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
