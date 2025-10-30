@@ -63,10 +63,10 @@
                         Loading User...
                     </span>
                     
-                    <!-- Login/Sign Up Button -->
-                    <button id="login-button" onclick="showModal('login-modal')" 
-                            class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-primary hover:bg-indigo-700 transition duration-300">
-                        Login / Sign Up
+                    <!-- Login/Sign Up Button - Now disabled until Firebase initializes -->
+                    <button id="login-button" onclick="showModal('login-modal')" disabled 
+                            class="whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-gray-400 cursor-not-allowed">
+                        Loading Auth...
                     </button>
 
                     <!-- Logout Button (Hidden by default) -->
@@ -265,6 +265,14 @@
                 onAuthStateChanged(auth, (user) => {
                     const loginButton = document.getElementById('login-button');
                     const logoutButton = document.getElementById('logout-button');
+                    
+                    // --- Auth Initialization Complete: Enable Button ---
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Login / Sign Up';
+                    // Restore original primary styling
+                    loginButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    loginButton.classList.add('bg-primary', 'hover:bg-indigo-700');
+                    // ---------------------------------------------------
 
                     if (user) {
                         userId = user.uid;
@@ -354,7 +362,7 @@
         // --- NEW AUTHENTICATION HANDLERS ---
         
         async function handleLoginSignup() {
-            // FIX: Check if auth object is initialized before proceeding
+            // Check is still here as a fallback, but the button should be enabled now
             if (!auth) {
                 displayAuthError("Initialization in progress. Please wait a moment and try again.");
                 return;
@@ -395,7 +403,7 @@
         }
         
         async function handleLogout() {
-             // FIX: Check if auth object is initialized before proceeding
+             // Check is still here as a fallback, but the button should be enabled now
             if (!auth) {
                 showStatus('Firebase is not yet initialized. Please wait a moment.', 'bg-red-100 border-red-400 text-red-700');
                 return;
@@ -534,52 +542,4 @@
 
 
         // 4. Handle Purchase (Mocks Payment Gateway Integration)
-        async function handlePurchase(product) {
-            // Use current user ID for purchase recording
-            const currentId = userId || auth.currentUser?.uid;
-
-            if (!currentId) {
-                console.error("User not authenticated.");
-                showStatus('Authentication Error. Please log in to make a purchase.', 'bg-red-100 border-red-400 text-red-700');
-                return;
-            }
-            
-            showStatus(`Initiating payment for ${product.name}... (Payment Mocked)`, 'bg-yellow-100 border-yellow-400 text-yellow-700');
-            
-            // SIMULATION for demonstration purposes:
-            await new Promise(resolve => setTimeout(resolve, 1500)); 
-            const transactionId = `txn_${Date.now()}`;
-            const purchaseRecord = {
-                productId: product.id,
-                productName: product.name,
-                price: product.price,
-                currency: product.currency,
-                timestamp: new Date().toISOString(),
-                status: 'COMPLETED',
-                transactionId: transactionId
-            };
-
-            // Record Purchase in User's Private Collection (Granting Access)
-            try {
-                const purchaseDocRef = doc(db, 
-                    'artifacts', appId, 'users', currentId, 'purchases', transactionId
-                );
-                
-                await setDoc(purchaseDocRef, purchaseRecord);
-
-                showStatus(`Success! Purchase of ${product.name} recorded. Check "My Downloads" now!`, 'bg-green-100 border-green-400 text-green-700');
-                
-                // Immediately update the purchase list after a successful mock transaction
-                checkUserPurchases(); 
-
-            } catch (e) {
-                console.error("Error recording purchase to Firestore:", e);
-                showStatus('Error recording purchase. Please check the console.', 'bg-red-100 border-red-400 text-red-700');
-            }
-        }
-        
-        // Start the application
-        initializeFirebase();
-    </script>
-</body>
-</html>
+        async function handlePurchase(product
